@@ -9,15 +9,15 @@ use tokio::runtime::Builder;
 
 #[derive(Debug, Copy, Clone)]
 enum Task {
-    IO(usize),
-    CPU(usize),
+    Io(usize),
+    Cpu(usize),
 }
 
 impl Task {
     fn label(&self) -> String {
         match self {
-            Self::IO(i) => format!("io-{i}"),
-            Self::CPU(i) => format!("cpu-{i}"),
+            Self::Io(i) => format!("io-{i}"),
+            Self::Cpu(i) => format!("cpu-{i}"),
         }
     }
 }
@@ -33,10 +33,10 @@ async fn io_task(client: Client, task: Task) {
     let _ = resp.unwrap().text().await.unwrap();
 
     match task {
-        Task::IO(i) => {
+        Task::Io(i) => {
             info!("io-{i} cost:{:?}", Instant::now().duration_since(now));
         }
-        Task::CPU(i) => {
+        Task::Cpu(i) => {
             info!("cpu-{i} cost:{:?}", Instant::now().duration_since(now));
             // Use sleep to block tokio worker thread
             std::thread::sleep(Duration::from_millis(200));
@@ -81,7 +81,7 @@ fn main() {
             std::thread::sleep(Duration::from_millis(10));
             let hc = io_client.clone();
             io.spawn(async move {
-                io_task(hc, Task::IO(i)).await;
+                io_task(hc, Task::Io(i)).await;
             });
         }
         std::thread::sleep(Duration::from_secs(1000000));
@@ -110,7 +110,7 @@ fn main() {
             std::thread::sleep(Duration::from_millis(10));
             let hc = http_client.clone();
             cpu.spawn(async move {
-                io_task(hc, Task::CPU(i)).await;
+                io_task(hc, Task::Cpu(i)).await;
             });
         }
         std::thread::sleep(Duration::from_secs(1000000));
